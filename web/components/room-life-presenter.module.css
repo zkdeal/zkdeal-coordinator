@@ -1,0 +1,325 @@
+.presenter {
+  height: calc(100vh - 68px);
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px 20px;
+  color: #0b2748;
+  background:
+    radial-gradient(circle at 82% 0%, rgba(117, 82, 217, 0.11), transparent 23rem),
+    linear-gradient(180deg, #f8fbff 0%, #ffffff 62%);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.58fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.title,
+.state,
+.step,
+.panel {
+  border: 1px solid #dfe7f0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 32px rgba(11, 39, 72, 0.06);
+}
+
+.title,
+.state {
+  min-height: 70px;
+  padding: 11px 14px;
+}
+
+.eyebrow,
+.label {
+  color: #3d8bff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title h1 {
+  margin: 3px 0 2px;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.title p,
+.state span,
+.step span,
+.panel p,
+.panel small {
+  color: #63758b;
+}
+
+.title p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.state {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.state strong {
+  margin: 3px 0;
+  color: #7552d9;
+  font-size: 15px;
+}
+
+.state span {
+  font-size: 10px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.step {
+  position: relative;
+  min-height: 64px;
+  padding: 8px 10px 8px 39px;
+}
+
+.step::after {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: -9px;
+  width: 10px;
+  height: 1px;
+  content: '';
+  background: #b9c9dc;
+}
+
+.step:last-child::after {
+  display: none;
+}
+
+.stepNumber {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  color: white;
+  border-radius: 8px;
+  background: #3d8bff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.step strong,
+.panel h2 {
+  display: block;
+  font-size: 12px;
+}
+
+.step span {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.75fr) minmax(370px, 1.08fr) minmax(390px, 1.17fr);
+  gap: 10px;
+  height: calc(100% - 152px);
+  min-height: 0;
+  margin-top: 9px;
+}
+
+.panel {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.panel h2 {
+  margin: 3px 0 8px;
+  font-size: 15px;
+}
+
+.accountGrid,
+.facts,
+.blocks {
+  display: grid;
+  gap: 7px;
+}
+
+.account,
+.fact,
+.block,
+.checkpointRead {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid #e5ebf2;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.account {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.accountIcon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #3d8bff;
+  border-radius: 9px;
+  background: #eaf3ff;
+}
+
+.account strong,
+.fact strong,
+.block strong,
+.checkpointRead strong {
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+}
+
+.account small,
+.fact small,
+.block small,
+.checkpointRead small {
+  display: block;
+  margin-top: 2px;
+  font-size: 8px;
+  line-height: 1.28;
+}
+
+.entryExit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.entryExit .fact:first-child {
+  border-color: rgba(61, 139, 255, 0.32);
+  background: #eef6ff;
+}
+
+.entryExit .fact:last-child {
+  border-color: rgba(38, 169, 108, 0.32);
+  background: #eefaf4;
+}
+
+.block {
+  position: relative;
+  padding-left: 38px;
+}
+
+.blockNumber {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  color: #7552d9;
+  border-radius: 8px;
+  background: #f0ebff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.actionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.actionList span {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 3px 6px;
+  color: #52677f;
+  border-radius: 999px;
+  background: white;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.provisional {
+  margin-top: 8px;
+  padding: 8px 9px;
+  color: #7b5718;
+  border: 1px solid #f0d8a6;
+  border-radius: 10px;
+  background: #fff8e8;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.checkpointGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.checkpointRead:nth-child(3),
+.checkpointRead:nth-child(4) {
+  grid-column: 1 / -1;
+}
+
+.hash {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  word-break: break-all;
+}
+
+.receipt {
+  display: flex;
+  min-height: 54px;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 8px 9px;
+  border: 1px solid rgba(38, 169, 108, 0.35);
+  border-radius: 10px;
+  background: #eefaf4;
+}
+
+.receipt > a {
+  max-height: 42px;
+  overflow: hidden;
+  font-size: 8px;
+}
+
+.receipt span {
+  color: #52677f;
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+@media (max-width: 1000px) {
+  .body {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

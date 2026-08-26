@@ -1,0 +1,47 @@
+# Build, test and run the coordinator + web console without any host toolchain.
+#   docker compose run --rm build        # builds the coordinator image
+#   docker compose run --rm test         # server + web vitest suites
+#   docker compose run --rm queue-test   # prove-queue e2e: queue + stub agents (no GPU)
+#   docker compose up run                # serve on :3000 (web) / :9001 (relay)
+#
+# The image build context is the UMBRELLA root: the coordinator image lays the
+# sibling folders out under /app the same way the checkout does.
+services:
+  build:
+    image: docker:27-cli
+    working_dir: /umbrella
+    volumes:
+      - ..:/umbrella
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: docker build -f web2-api/server/Dockerfile -t zkdeal-coordinator:dev /umbrella
+
+  test:
+    image: node:22-bookworm@sha256:0557ac14e0d45d02ed563067b82856ca5e7aa3437fa28d98d4350ea9c3d9494a
+    volumes:
+      - ..:/src:ro
+      - pnpm-store:/pnpm-store
+    command: bash -lc "mkdir /u && tar -C /src --exclude='./*/node_modules' --exclude='./*/*/node_modules' --exclude='./*/*/*/node_modules' --exclude=./.git --exclude=./web2-api/web/.next --exclude=./web2-api/web/out --exclude=./web2-api/server/data -cf - ./app-node ./apps-examples ./web2-api ./web3-protocol ./prover-node | tar -C /u -xf - && cd /u/app-node && corepack enable && corepack prepare pnpm@10.13.1 --activate && pnpm config set store-dir /pnpm-store && pnpm install --frozen-lockfile && cd /u/apps-examples && pnpm install --frozen-lockfile && cd /u/web2-api && pnpm install --frozen-lockfile && pnpm run build && pnpm run test"
+
+  # The multi-agent prove-queue story without a GPU anywhere: one standalone
+  # queue, two ok:2000 stub agents, one take-and-die agent, all inside this
+  # container, asserted by server/test/prove-queue-e2e.test.ts.
+  queue-test:
+    image: node:22-bookworm@sha256:0557ac14e0d45d02ed563067b82856ca5e7aa3437fa28d98d4350ea9c3d9494a
+    volumes:
+      - ..:/src:ro
+      - pnpm-store:/pnpm-store
+    # apps-examples rides along only as the link: target the web package
+    # declares; it is deliberately NOT installed - nothing here builds the
+    # web console, and the queue stand must not depend on example packages.
+    command: bash -lc "mkdir /u && tar -C /src --exclude='./*/node_modules' --exclude='./*/*/node_modules' --exclude='./*/*/*/node_modules' --exclude=./.git --exclude=./web2-api/web/.next --exclude=./web2-api/web/out --exclude=./web2-api/server/data -cf - ./app-node ./apps-examples ./web2-api ./prover-node/agent ./prover-node/package.json ./prover-node/pnpm-workspace.yaml ./prover-node/pnpm-lock.yaml ./prover-node/tsconfig.base.json | tar -C /u -xf - && cd /u/app-node && corepack enable && corepack prepare pnpm@10.13.1 --activate && pnpm config set store-dir /pnpm-store && pnpm install --frozen-lockfile && cd /u/web2-api && pnpm install --frozen-lockfile && cd /u/prover-node && pnpm install --frozen-lockfile && bash /u/web2-api/server/scripts/run-queue-e2e.sh"
+
+  run:
+    image: zkdeal-coordinator:dev
+    ports:
+      - "3000:3000"
+      - "9001:9001"
+    environment:
+      DEMO_ENABLED: "0"
+
+volumes:
+  pnpm-store:

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "acceptanceId": "zkdeal-hosted-room-batch-current-zkvm",
+  "observedAt": "2026-08-22T00:03:02.000Z",
+  "passed": true,
+  "contract": {
+    "fixturePrepare": false,
+    "hostedLegacyGroth16": false,
+    "engineToBatchInputV5": true,
+    "durablePostgresQueue": true,
+    "externalProver": true,
+    "ownerDerivedSubmitBatch": true,
+    "restartResume": true,
+    "canonicalFinalityEvidence": true
+  },
+  "gates": {
+    "ownerJointHttp": {
+      "passed": true,
+      "tests": 13,
+      "durationSeconds": 16.38,
+      "test": "web2-api/server/test/hosted-api-catalog.integration.test.ts",
+      "adapter": "app-node/packages/room-node/src/hosted-lifecycle.ts"
+    },
+    "l2Engine": {
+      "passed": true,
+      "tests": 172
+    },
+    "roomNode": {
+      "passed": true,
+      "tests": 12
+    },
+    "roomClient": {
+      "passed": true,
+      "tests": 171
+    },
+    "zkvmTypescript": {
+      "passed": true,
+      "tests": 116,
+      "externalProofSkips": 5
+    },
+    "rustLivePrepare": {
+      "passed": true,
+      "tests": 6
+    },
+    "rustOwnerVectors": {
+      "passed": true,
+      "tests": 1
+    }
+  },
+  "externalProofGates": {
+    "routineSemanticCoverageComplete": true,
+    "realRisc0ProofCases": 4,
+    "realLigeroProofCases": 1,
+    "environment": "ZKVM_PROVE_TESTS=1 and, for Ligero, ZKVM_LIGETRON_TESTS=1",
+    "releaseRequirement": "run against pinned built zkVM artifacts and the selected real prover backend"
+  },
+  "images": {
+    "node": {
+      "reference": "node:22-bookworm@sha256:0557ac14e0d45d02ed563067b82856ca5e7aa3437fa28d98d4350ea9c3d9494a",
+      "imageId": "sha256:6fa4cea04fca5c92ab1d8b54f46b0894993aa03a95db420fbad48d5695344f2b"
+    },
+    "rust": {
+      "reference": "rust:1.88.0-bookworm@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0",
+      "imageId": "sha256:1dc2982f2cd4ba58fff5557629297b31e4ef59c02d8a38594afe9b02f59c4bd2"
+    },
+    "postgresql": {
+      "reference": "postgres@sha256:ef257d85f76e48da1c64832459b59fcaba1a4dac97bf5d7450c77753542eee94",
+      "imageId": "sha256:d741b376874687de90374fd34f55c6b2760e8f7bd7e4ae5cd47f50757fc08cf8"
+    },
+    "minio": {
+      "reference": "minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+      "imageId": "sha256:9d668e47f1fc60ea49af4203deee87a657eb1aa0e2761fee2c7c2d1df282c880"
+    }
+  },
+  "sourceArtifacts": {
+    "web2-api/server/src/hosting-routes.ts": "efa0883ec74aeddb65bda24f36f372f696d797fa02959b8d625b973b0869520d",
+    "web2-api/server/src/postgres-hosted-store.ts": "818f18763ff1865d7df31b2e161209c51b0e22c339b8924edad223ff4cf3cb9e",
+    "web2-api/server/src/execution-policy-v5.ts": "ab01128d3759b46a95fced3819849ce0104dbc6512a2ef72095dff1d55dd6e15",
+    "web2-api/server/test/hosted-api-catalog.integration.test.ts": "2095c881557c8fee6a2f911e8db4ac8880e337a3b90c1b75e83aba79bf0d5799",
+    "app-node/packages/l2-engine/src/engine.ts": "1d29dd2e6272271b50dcb65fe49c813b8157aa356d2187b970625d9632fcc68b",
+    "app-node/packages/zkvm/src/live-room-batch.ts": "105d38908f1043634484ff9b411bf0ebd00c58deea0bd6a9500d423de0823c33",
+    "app-node/packages/room-node/src/hosted-lifecycle.ts": "d05137cc1902f341faef9131d028aad9722dd89c91c930412709f8fe4bb5d955",
+    "app-node/packages/room-node/src/runtime.ts": "2c9bc5935e3ea3948157b95bbb48fec951f8b6c9d1234056fdf7ba277ca18f44",
+    "prover-node/zkvm/crates/risc0/host/src/live_prepare.rs": "2769d5eff3310b03ad2fa5fbcc48c60ab14357be2ce54bba16d02c7e83798e55",
+    "prover-node/zkvm/crates/risc0/host/src/http.rs": "c9ab30592c8572995df47c337db9840deee74e0b62768dd653df9a6314705903",
+    "prover-node/zkvm/crates/risc0/host/src/capabilities.rs": "6bc1258e821c4e12380e330008eb9509a79d3275239c7a490a038f969f24b257"
+  }
+}

@@ -1,0 +1,33 @@
+.dayTheme {
+  /*
+   * The shared autoplay components use the application's semantic Tailwind
+   * colours. The application default is intentionally dark, while /demo is a
+   * dedicated daylight console. Scope a complete light token set here so every
+   * nested surface (including PresenterBar and ActionLog) belongs to /demo
+   * without changing the card-duel presentation.
+   */
+  color-scheme: light;
+  --background: #f7faff;
+  --foreground: #0b2748;
+  --card: #ffffff;
+  --card-foreground: #0b2748;
+  --popover: #ffffff;
+  --popover-foreground: #0b2748;
+  --primary: #2f7ef5;
+  --primary-foreground: #ffffff;
+  --secondary: #eef4fb;
+  --secondary-foreground: #0b2748;
+  --muted: #f2f6fa;
+  --muted-foreground: #63758b;
+  --accent: #7552d9;
+  --accent-foreground: #ffffff;
+  --destructive: #c43e46;
+  --success: #168456;
+  --warning: #a8660e;
+  --border: #dce5ef;
+  --input: #cbd8e6;
+  --ring: #2f7ef5;
+
+  color: var(--foreground);
+  box-shadow: 0 18px 48px rgba(11, 39, 72, 0.1);
+}

@@ -1,0 +1,178 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "zkdeal Capacity Provider",
+    "version": "1",
+    "description": "Internal scoped interface used by the globally fenced capacity controller. Implementations may drive a cloud fleet, a RoomPool controller signer, or both, but must bind Idempotency-Key to the complete immutable request."
+  },
+  "servers": [{ "url": "https://capacity-provider.example" }],
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "capacityProviderHealth",
+        "responses": {
+          "200": {
+            "description": "Provider can accept operations",
+            "content": { "application/json": { "schema": { "type": "object", "required": ["ok"], "properties": { "ok": { "const": true } } }, "example": { "ok": true } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/v1/capacity/operations": {
+      "post": {
+        "operationId": "applyCapacityOperation",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CapacityOperation" }, "example": { "schemaVersion": 1, "allocationId": "alloc-eu-001", "tenantId": "tenant-a", "roomId": "7", "desiredState": "ACTIVE", "providerNodeId": null, "deadlineAt": "2026-08-22T12:00:00.000Z", "metadata": { "region": "eu-west" }, "previousProviderOperationId": null } } }
+        },
+        "responses": {
+          "200": { "description": "Applied or durably pending", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CapacityOperationResult" }, "examples": { "applied": { "value": { "state": "APPLIED", "operationId": "provider-op-1", "providerNodeId": "gpu-eu-1", "evidence": { "fleetRevision": "42" } } }, "pending": { "value": { "state": "PENDING", "operationId": "provider-op-1", "providerNodeId": null, "retryAfterMs": 5000, "evidence": {} } } } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/Retryable" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/v1/nodes/{nodeId}/lifecycle": {
+      "post": {
+        "operationId": "applyNodeLifecycleOperation",
+        "description": "Executes the irreversible RoomPool drain/retire lifecycle. APPLIED means the provider submitted the exact selector and returns transaction-bound evidence; the coordinator still waits for its finalized canonical event before changing the durable lifecycle state to APPLIED.",
+        "parameters": [
+          { "name": "nodeId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" } },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NodeLifecycleOperation" }, "example": { "schemaVersion": 1, "operationId": "node-lifecycle-0123456789abcdef0123456789abcdef", "principalId": "node-eu-1", "nodeId": "0x1111111111111111111111111111111111111111111111111111111111111111", "desiredState": "DRAINING", "previousProviderOperationId": null } } }
+        },
+        "responses": {
+          "200": { "description": "Applied or durably pending", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NodeLifecycleOperationResult" }, "examples": { "applied": { "value": { "state": "APPLIED", "operationId": "provider-node-op-1", "evidence": { "nodeId": "0x1111111111111111111111111111111111111111111111111111111111111111", "desiredState": "DRAINING", "selector": "0xd7ceb78e", "transactionHash": "0x2222222222222222222222222222222222222222222222222222222222222222" } } }, "pending": { "value": { "state": "PENDING", "operationId": "provider-node-op-1", "retryAfterMs": 5000, "evidence": {} } } } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/Retryable" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/v1/capacity/demand": {
+      "post": {
+        "operationId": "acceptCapacityDemandSignal",
+        "description": "Receives one immutable PostgreSQL-frozen window. scaleDownSafe=false forbids a provider-initiated reduction.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CapacityDemand" } } } },
+        "responses": {
+          "200": { "description": "Signal durably accepted", "content": { "application/json": { "schema": { "type": "object", "required": ["accepted"], "properties": { "accepted": { "const": true }, "providerRevision": { "type": "string" } } }, "example": { "accepted": true, "providerRevision": "fleet-42" } } } },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "429": { "$ref": "#/components/responses/Retryable" },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer" } },
+    "parameters": {
+      "IdempotencyKey": { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 200 }, "description": "Must be permanently bound to the exact canonical request." }
+    },
+    "schemas": {
+      "CapacityOperation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["schemaVersion", "allocationId", "tenantId", "roomId", "desiredState", "providerNodeId", "deadlineAt", "metadata", "previousProviderOperationId"],
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "allocationId": { "type": "string" },
+          "tenantId": { "type": "string" },
+          "roomId": { "type": "string", "pattern": "^[0-9]+$" },
+          "desiredState": { "enum": ["RESERVED", "ACTIVE", "RENEW", "HANDOFF", "RELEASED"] },
+          "providerNodeId": { "type": ["string", "null"] },
+          "deadlineAt": { "type": ["string", "null"], "format": "date-time" },
+          "metadata": { "type": "object" },
+          "previousProviderOperationId": { "type": ["string", "null"] }
+        }
+      },
+      "CapacityOperationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["state", "operationId", "evidence"],
+        "properties": {
+          "state": { "enum": ["APPLIED", "PENDING"] },
+          "operationId": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "providerNodeId": { "type": ["string", "null"] },
+          "retryAfterMs": { "type": ["integer", "null"], "minimum": 1000, "maximum": 3600000 },
+          "evidence": { "type": "object" }
+        }
+      },
+      "NodeLifecycleOperation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["schemaVersion", "operationId", "principalId", "nodeId", "desiredState", "previousProviderOperationId"],
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "operationId": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "principalId": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "nodeId": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+          "desiredState": { "enum": ["DRAINING", "RETIRED"] },
+          "previousProviderOperationId": { "type": ["string", "null"], "maxLength": 200 }
+        }
+      },
+      "NodeLifecycleOperationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["state", "operationId", "evidence"],
+        "properties": {
+          "state": { "enum": ["APPLIED", "PENDING"] },
+          "operationId": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "retryAfterMs": { "type": ["integer", "null"], "minimum": 1000, "maximum": 3600000 },
+          "evidence": {
+            "type": "object",
+            "required": ["nodeId", "desiredState", "selector", "transactionHash"],
+            "properties": {
+              "nodeId": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" },
+              "desiredState": { "enum": ["DRAINING", "RETIRED"] },
+              "selector": { "enum": ["0xd7ceb78e", "0x13ca0607"] },
+              "transactionHash": { "type": "string", "pattern": "^0x[0-9a-f]{64}$" }
+            }
+          }
+        }
+      },
+      "CapacityDemand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["schemaVersion", "signalId", "windowStartedAt", "queuedJobs", "queuedBytes", "estimatedProofTimeMs", "urgentJobs", "reservedJobs", "activeGpuResources", "desiredGpuResources", "staleProofProfiles", "earliestLatestStartAt", "scaleDownSafe"],
+        "properties": {
+          "schemaVersion": { "const": 1 },
+          "signalId": { "type": "string", "pattern": "^[0-9]+$" },
+          "windowStartedAt": { "type": "string", "format": "date-time" },
+          "queuedJobs": { "type": "integer", "minimum": 0 },
+          "queuedBytes": { "type": "string", "pattern": "^[0-9]+$" },
+          "estimatedProofTimeMs": { "type": "string", "pattern": "^[0-9]+$" },
+          "urgentJobs": { "type": "integer", "minimum": 0 },
+          "reservedJobs": { "type": "integer", "minimum": 0 },
+          "activeGpuResources": { "type": "integer", "minimum": 0 },
+          "desiredGpuResources": { "type": "integer", "minimum": 0 },
+          "staleProofProfiles": { "type": "integer", "minimum": 0 },
+          "earliestLatestStartAt": { "type": ["string", "null"], "format": "date-time" },
+          "scaleDownSafe": { "type": "boolean" }
+        }
+      },
+      "Error": { "type": "object", "required": ["error"], "properties": { "error": { "type": "string" }, "retryAfterMs": { "type": "integer", "minimum": 1000, "maximum": 3600000 } } }
+    },
+    "responses": {
+      "BadRequest": { "description": "Request rejected permanently", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Unauthorized": { "description": "Scoped provider token rejected", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Conflict": { "description": "Idempotency key is bound to different bytes", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Retryable": { "description": "Provider asks for bounded retry", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "Unavailable": { "description": "Provider unavailable; worker retains the durable lease outcome", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    }
+  }
+}

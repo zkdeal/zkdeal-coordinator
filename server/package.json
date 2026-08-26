@@ -1,0 +1,44 @@
+{
+  "name": "@zkdeal/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "zkdeal v6 batch observer and coordinator transport",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "start:indexer": "tsx src/hosted-worker.ts indexer",
+    "start:reconciler": "tsx src/hosted-worker.ts reconciler",
+    "start:publisher": "tsx src/hosted-publisher-worker.ts",
+    "start:withdrawal": "tsx src/hosted-withdrawal-worker.ts run",
+    "start:capacity": "tsx src/hosted-capacity-worker.ts run",
+    "withdrawal": "tsx src/hosted-withdrawal-worker.ts",
+    "generate:hosting-openapi": "tsx scripts/hosting-openapi.mts",
+    "check:hosting-openapi": "tsx scripts/hosting-openapi.mts --check",
+    "test": "vitest run",
+    "measure:v5-control-plane": "tsx scripts/measure-control-plane.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/static": "^10.1.0",
+    "@libp2p/tcp": "^11.0.23",
+    "@zkdeal/p2p": "link:../../app-node/packages/p2p",
+    "@zkdeal/protocol": "link:../../app-node/packages/protocol",
+    "@zkdeal/zkvm": "link:../../app-node/packages/zkvm",
+    "fastify": "^5.10.0",
+    "kzg-wasm": "1.0.0",
+    "pg": "8.23.0",
+    "tsx": "^4.23.1",
+    "viem": "^2.55.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
+  }
+}

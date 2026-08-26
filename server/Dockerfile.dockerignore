@@ -1,0 +1,24 @@
+# Context is the umbrella root; keep the giant local trees out of the daemon
+# upload. node_modules must NOT ship into the context: the image runs its own
+# frozen-lockfile installs (host node_modules may carry another OS's natives).
+**/node_modules
+**/.pnpm-store
+**/.git
+**/target
+prover-node/zkvm/build
+prover-node/zkvm/target
+web2-api/web/.next
+web2-api/web/out
+web2-api/server/data
+web3-protocol/contracts/cache
+web3-protocol/circuits/cache
+book
+outputs
+output
+qa
+tmp
+.tools
+.claude
+**/*.log
+**/test-results
+**/gpu-*-evidence
