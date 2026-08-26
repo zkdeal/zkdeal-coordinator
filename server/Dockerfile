@@ -77,9 +77,16 @@ RUN node scripts/runtime-bundle-helper.mjs link node_modules \
       ../../app-node/packages/p2p ../../app-node/packages/protocol
 
 FROM node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS runtime
-# BUSL-1.1 requires conspicuous display on every distributed copy.
-COPY zkdeal-BUSL-1.1-LICENSE /zkdeal-BUSL-1.1-LICENSE
-LABEL org.opencontainers.image.licenses="BUSL-1.1"
+# Preserve the notices for every first-party source tree copied into the
+# distributed runtime. The service, room node and prover are BUSL-1.1; the
+# examples, acceptance harness and protocol artifacts are MIT licensed.
+COPY web2-api/LICENSE /licenses/web2-api-BUSL-1.1.txt
+COPY app-node/LICENSE /licenses/app-node-BUSL-1.1.txt
+COPY prover-node/LICENSE /licenses/prover-node-BUSL-1.1.txt
+COPY apps-examples/LICENSE /licenses/apps-examples-MIT.txt
+COPY kurtosis-testing/LICENSE /licenses/kurtosis-testing-MIT.txt
+COPY web3-protocol/LICENSE /licenses/web3-protocol-MIT.txt
+LABEL org.opencontainers.image.licenses="BUSL-1.1 AND MIT"
 WORKDIR /app
 COPY --from=bundle /app/app-node/node_modules ./app-node/node_modules
 # Workspace package identities keep the pnpm links valid; no src/ trees ship.
