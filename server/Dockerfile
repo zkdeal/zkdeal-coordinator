@@ -80,6 +80,7 @@ FROM node:22-bookworm-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0
 # Preserve the notices for every first-party source tree copied into the
 # distributed runtime. The service, room node and prover are BUSL-1.1; the
 # examples, acceptance harness and protocol artifacts are MIT licensed.
+COPY web2-api/LICENSE /zkdeal-BUSL-1.1-LICENSE
 COPY web2-api/LICENSE /licenses/web2-api-BUSL-1.1.txt
 COPY app-node/LICENSE /licenses/app-node-BUSL-1.1.txt
 COPY prover-node/LICENSE /licenses/prover-node-BUSL-1.1.txt
