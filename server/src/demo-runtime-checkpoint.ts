@@ -55,6 +55,7 @@ import type { CardRoomDeployment } from './card-request.js'
 import type { Erc7540RoomDeployment } from './erc7540-request.js'
 import type { Erc4626RoomDeployment } from './erc4626-request.js'
 import { signErc4626CheckpointActions } from './erc4626-signing.js'
+import { SHOP_PRESET_ID, signShopCheckpointActions } from './shop-signing.js'
 
 /** The room fields `submitBatch` chains a batch onto. */
 export interface OnChainRoom {
@@ -293,6 +294,8 @@ export async function runCheckpoint(
       context.deploymentDomain,
       context.erc4626Room,
     )
+  } else if (template.presetId === SHOP_PRESET_ID) {
+    await signShopCheckpointActions(room, actions, context.deploymentDomain)
   }
   const moves = movesOf(actions)
   // `baseSpec` emits this batch's own two blocks as `rawTransactions`; a

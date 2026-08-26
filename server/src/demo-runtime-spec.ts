@@ -247,7 +247,11 @@ export function baseSpec(
             }
       : {
           initialStorage: selected.map((item) => ({ slot: item.slot, value: item.value })),
-          blockCalls: moves?.calldata ?? fallbackCalls,
+          // A client/fixture-signed shop batch is already expressed completely
+          // by `rawTransactions` below. Sending the historic `blockCalls` too
+          // would give the prover two competing transaction sources; it
+          // refuses that shape rather than silently choosing one.
+          ...(moves?.signed ? {} : { blockCalls: moves?.calldata ?? fallbackCalls }),
         }),
     // Browser-signed moves. `rawTransactions` outranks both `blockCalls` and
     // the card plan in `blocks.rs`, and the host refuses a request that carries

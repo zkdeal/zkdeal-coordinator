@@ -176,7 +176,7 @@ describe('a continuation checkpoint', () => {
   it('asks the prover to open batch N from the room state L1 actually holds', async () => {
     const { sent, post } = recorder()
     await expect(
-      runCheckpoint(context({ post }), room(), template('shop'), async () => undefined, {
+      runCheckpoint(context({ post }), room(), template('auction'), async () => undefined, {
         sequence: 2,
         trigger: 'MOVES',
         actions: [action('a', 1), action('b', 2)],
@@ -206,7 +206,7 @@ describe('a continuation checkpoint', () => {
       }
     })
     await expect(
-      runCheckpoint(context({ post }), room(), template('shop'), async () => undefined, {
+      runCheckpoint(context({ post }), room(), template('auction'), async () => undefined, {
         sequence: 2,
         trigger: 'MOVES',
         actions: [action('a', 1), action('b', 2)],
@@ -230,7 +230,7 @@ describe('a continuation checkpoint', () => {
       }),
     })
     await expect(
-      runCheckpoint(fresh, room(), template('shop'), async () => undefined, {
+      runCheckpoint(fresh, room(), template('auction'), async () => undefined, {
         sequence: 1,
         trigger: 'MANUAL',
         actions: [action('a', 1), action('b', 2)],
