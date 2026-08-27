@@ -27,6 +27,30 @@ validation at startup, an exposure guard that refuses to bind a non-loopback
 interface with dev-only features (faucet, unsigned writes, permissive CORS)
 enabled on a real chain, and per-IP metering on public reads.
 
+## Motivational example
+
+An auction and a shop can share the same coordinator without sharing the same
+idea of “finished.” The auction wants exactly one checkpoint and must reject a
+late bid. The shop wants to finalize, reopen, accept more work, and checkpoint
+again. That distinction belongs in the room lifecycle, not in an operator's
+memory.
+
+This run drives both presets through the coordinator's demo control plane. The
+auction closes after checkpoint 1; the shop reaches checkpoint 2, returns to a
+usable finalized state, and leaves no pending action behind.
+
+[![A terminal compares a closed one-checkpoint auction with a two-checkpoint shop that reopens after finality.](https://zkdeal.org/blog/terminal/ii-room-lifecycle-gates-poster.png?v=579e46f0f44c)](https://zkdeal.org/blog/one-checkpoint-clear-to-eight-hour-market/#terminal-recording)
+
+**Watch or inspect the run:** [interactive Asciinema recording](https://zkdeal.org/blog/one-checkpoint-clear-to-eight-hour-market/#terminal-recording) · [copyable transcript](https://zkdeal.org/blog/terminal/ii-room-lifecycle-gates.txt) · [Asciicast v3](https://zkdeal.org/blog/terminal/ii-room-lifecycle-gates.cast) · [VHS tape](https://zkdeal.org/blog/terminal/ii-room-lifecycle-gates.tape) · [WebM](https://zkdeal.org/blog/terminal/ii-room-lifecycle-gates.webm) · [MP4](https://zkdeal.org/blog/terminal/ii-room-lifecycle-gates.mp4)
+
+The final assertion is deliberately about behavior, not process health:
+
+```text
+{"decision":"ROOM_LIFECYCLES_COMPARED","oneShot":{"preset":"auction","checkpoints":1,"phase":"CLOSED","laterActionRejected":true},"longRunning":{"preset":"shop","checkpoints":2,"checkpointSequences":[1,2],"phase":"L1_FINALIZED","reopenedAfterSecondCheckpoint":true,"pendingActions":0}}
+```
+
+[Run the complete lifecycle comparison](https://zkdeal.org/blog/one-checkpoint-clear-to-eight-hour-market/) and inspect the coordinator's [checkpoint policy](server/src/demo-checkpoint-policy.ts).
+
 ## L1 finality and coordinator recovery
 
 `L1_ACCEPTED` means included, not final. A checkpoint becomes final settlement
