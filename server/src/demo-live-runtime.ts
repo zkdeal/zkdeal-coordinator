@@ -67,6 +67,7 @@ import {
   type ProofResult,
   type DemoLiveRuntimeOptions,
 } from './demo-runtime-types.js'
+import { coldTemplateExitRouteBound } from './demo-template-binding.js'
 
 /** Smallest legal omission penalty for a VALIDITY_ONLY demo room. */
 export const DEMO_OMISSION_PENALTY = 1n
@@ -469,13 +470,15 @@ export class DemoLiveRuntime implements DemoRuntime {
     const registryArtifact = await this.artifact('ColdTemplateRegistry')
     const registry = evidence.contracts!.registry
     let registrationTransaction = evidence.transactions?.register ?? zeroHash
+    let exitRouteBound = false
     try {
-      await this.publicClient.readContract({
+      const registered = await this.publicClient.readContract({
         address: registry,
         abi: registryArtifact.abi,
         functionName: 'get',
         args: [prepared.contractConfig.templateId],
       })
+      exitRouteBound = coldTemplateExitRouteBound(registered)
     } catch {
       const receipt = await this.sent(
         this.wallets.templateAdmin,
@@ -494,6 +497,21 @@ export class DemoLiveRuntime implements DemoRuntime {
         ],
       )
       registrationTransaction = receipt.transactionHash
+    }
+    // VALIDITY_ONLY room creation refuses an otherwise valid template until
+    // its policy is one-way attested to contain the seal-free exit route. The
+    // bootstrap does this for its canary template; every freshly prepared demo
+    // template must cross the same registry boundary before it is advertised
+    // as ROOM_READY. Existing bound templates are left untouched so replay is
+    // idempotent across coordinator restarts.
+    if (!exitRouteBound) {
+      await this.sent(
+        this.wallets.templateAdmin,
+        registry,
+        registryArtifact.abi,
+        'bindExitRoute',
+        [prepared.contractConfig.templateId],
+      )
     }
     await onPhase('TEMPLATE_REGISTERED')
     return {
