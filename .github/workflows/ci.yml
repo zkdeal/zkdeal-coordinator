@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.13.1
+  FOUNDRY_IMAGE: ghcr.io/foundry-rs/foundry:v1.7.1@sha256:8347b728d5d393dac1c018691b36f506d23b9dcd78341d40ea0fcb11c3a19cdd
+
+jobs:
+  build-and-test:
+    name: build + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      # This repository retains the source split's relative sibling imports.
+      # Pin every public companion checkout so CI is reproducible.
+      - uses: actions/checkout@v7
+        with:
+          path: zkdeal-coordinator
+      - uses: actions/checkout@v7
+        with:
+          repository: zkdeal/zkdeal-node
+          ref: f592e398753095022c1cc1d663e3f83759e0ca51
+          path: app-node
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: zkdeal/zkdeal-examples
+          ref: c5b4ee7519da7526c3c066653233a32c479d0b48
+          path: apps-examples
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: zkdeal/zkdeal-protocol
+          ref: 346409318918a63f85c591ca4713c1792b88cd61
+          path: web3-protocol
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: zkdeal/zkdeal-prover
+          ref: c640600d9885aa5823a8729a2679901f8208d170
+          path: prover-node
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: |
+            app-node/pnpm-lock.yaml
+            apps-examples/pnpm-lock.yaml
+            web3-protocol/pnpm-lock.yaml
+            zkdeal-coordinator/pnpm-lock.yaml
+
+      - name: Install node packages
+        working-directory: app-node
+        run: pnpm install --frozen-lockfile
+      - name: Install example packages
+        working-directory: apps-examples
+        run: pnpm install --frozen-lockfile
+      - name: Install protocol packages
+        working-directory: web3-protocol
+        run: pnpm install --frozen-lockfile
+      - name: Install coordinator packages
+        working-directory: zkdeal-coordinator
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contract artifacts used by the tests
+        run: |
+          docker pull "$FOUNDRY_IMAGE"
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -e FOUNDRY_LINT_LINT_ON_BUILD=false \
+            -v "$PWD/web3-protocol:/workspace" \
+            -w /workspace/contracts \
+            "$FOUNDRY_IMAGE" \
+            "forge build --deny warnings"
+
+      - name: Build
+        working-directory: zkdeal-coordinator
+        run: pnpm run build
+      - name: Test
+        working-directory: zkdeal-coordinator
+        env:
+          # Clean checkouts intentionally omit the large demo proving keys.
+          ZKDEAL_ALLOW_MISSING_CIRCUIT_ARTIFACTS: "1"
+        # Run workspaces sequentially: the card-witness test has an intentional
+        # five-second deadline and can exceed it under recursive test contention.
+        run: |
+          pnpm --filter @zkdeal/server test
+          pnpm --filter web test
