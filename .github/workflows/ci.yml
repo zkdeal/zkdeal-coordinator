@@ -86,6 +86,7 @@ jobs:
           docker pull "$FOUNDRY_IMAGE"
           docker run --rm \
             --user "$(id -u):$(id -g)" \
+            -e HOME=/tmp \
             -e FOUNDRY_LINT_LINT_ON_BUILD=false \
             -v "$PWD/web3-protocol:/workspace" \
             -w /workspace/contracts \
